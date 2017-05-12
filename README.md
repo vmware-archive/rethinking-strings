@@ -8,10 +8,20 @@ Strings"](https://cppnow2017.sched.com/event/A8Id), a talk at C++Now 2017.
 
 ## Contributing
 
-The author welcomes contributions from the community. If you wish to contribute
-code and you have not signed our contributor license agreement (CLA), our bot
-will update the issue when you open a Pull Request. For any questions about the
-CLA process, please refer to our [FAQ](https://cla.vmware.com/faq).
+Contributions are welcome via github pull requests, though see the note about
+building below.
+
+If you wish to contribute code and you have not signed our contributor license
+agreement (CLA), our bot will update the issue when you open a Pull Request. For
+any questions about the CLA process, please refer to our
+[FAQ](https://cla.vmware.com/faq).
+
+## Building
+
+This project uses CMake. In my environment, I use a plethora of command line
+options to configure CMake to use a snapshot of llvm/clang/ibc++.
+
+You _may_ be able to get it to build, but you are very much on your own.
 
 ## License
 
