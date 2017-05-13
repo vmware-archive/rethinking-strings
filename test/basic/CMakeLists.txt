@@ -7,7 +7,3 @@ add_test(
     NAME BasicTest
     COMMAND basic
 )
-
-
-
-

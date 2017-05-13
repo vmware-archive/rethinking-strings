@@ -5,6 +5,11 @@
 #include <rethink/api.h>
 
 #include <atomic>
+#include <cstdlib>
+#include <cstring>
+#include <new>
+
+#include <stdlib.h>
 
 namespace rethink {
 
@@ -14,26 +19,28 @@ class ref_string {
  public:
   template <int N>
   constexpr ref_string(char const (&a)[N]) : _size(N), _data(&a[0]) {}
-  constexpr ref_string() : _size(0), _data(nullptr) {}
+  template <class T>
+  constexpr ref_string(const T& t)
+      : _size(string_size(t)), _data(string_data(t)) {}
+  constexpr ref_string() noexcept : _size(0), _data(nullptr) {}
   void swap(ref_string& rhs) noexcept {
-    using std::swap;
-    swap(_data, rhs._data);
-    swap(_size, rhs._size);
+    std::swap(_data, rhs._data);
+    std::swap(_size, rhs._size);
   }
 
-  const char* data() const { return _data; }
-  int size() const { return _size; }
+  constexpr char const* data() const noexcept { return _data; }
+  constexpr int size() const noexcept { return _size; }
 
  private:
   int _size;
-  char const* _data;  // TODO Need non-const ref_string.
+  char const* _data;
 };
 
 //------------------------------------------------------------------------------
 
 inline void swap(ref_string& lhs, ref_string& rhs) { lhs.swap(rhs); }
-inline const char* data(ref_string const& s) { return s.data(); }
-inline int size(ref_string const& s) { return s.size(); }
+inline const char* string_data(ref_string const& s) { return s.data(); }
+inline int string_size(ref_string const& s) { return s.size(); }
 
 namespace detail {
 
@@ -41,7 +48,14 @@ namespace detail {
 
 class shared_ctrl {
  public:
-  constexpr shared_ctrl() {}
+  constexpr shared_ctrl() = default;
+  shared_ctrl(shared_ctrl const&) = delete;
+  template <class T>
+  explicit shared_ctrl(const T& t) : len(string_size(t)), _rc(0) {
+    char* d = const_cast<char*>(&data[0]);
+    std::memcpy(d, string_data(t), len);
+    *(d + len) = '\0';
+  }
   void retain() noexcept { ++_rc; }
   void release() noexcept {
     if (_rc.fetch_sub(1) == 0) {
@@ -49,18 +63,19 @@ class shared_ctrl {
     }
   }
 
+ public:
+  int const len{0};
+
  private:
-  std::atomic<int> _rc = 0;  // TODO choose non-default ordering?
+  std::atomic<int> _rc{0};
 
  public:
-  int cap = 0;
-  int len = 0;
-  const char data[1] = {'\0'};
+  char const data[1]{'\0'};
 };
 
 //------------------------------------------------------------------------------
 
-constexpr ptrdiff_t k_shared_ctrl_offset = -12;
+constexpr ptrdiff_t k_shared_ctrl_offset = -8;
 RETHINK_API constexpr shared_ctrl s_empty_shared_ctrl;
 
 //------------------------------------------------------------------------------
@@ -68,6 +83,17 @@ RETHINK_API constexpr shared_ctrl s_empty_shared_ctrl;
 inline shared_ctrl* shared_ctrl_from_data(const char* d) {
   uintptr_t ctrl = reinterpret_cast<uintptr_t>(d) + k_shared_ctrl_offset;
   return reinterpret_cast<shared_ctrl*>(ctrl);
+}
+
+//------------------------------------------------------------------------------
+
+template <class T>
+inline char const* new_shared_ctrl(const T& t) {
+  void* p;
+  posix_memalign(&p, alignof(shared_ctrl),
+                 sizeof(shared_ctrl) + string_size(t));
+  new (p) shared_ctrl(t);
+  return &reinterpret_cast<shared_ctrl*>(p)->data[0];
 }
 
 }  // namespace detail
@@ -98,6 +124,9 @@ class shared_string {
   void swap(shared_string& rhs) noexcept { std::swap(_data, rhs._data); }
   ~shared_string() { ctrl()->release(); }
 
+ public:
+  explicit shared_string(ref_string r) : _data(detail::new_shared_ctrl(r)){};
+
   const char* data() const { return _data; }
   int size() const { return ctrl()->len; }
 
@@ -118,7 +147,7 @@ class shared_string {
 //------------------------------------------------------------------------------
 
 inline void swap(shared_string& lhs, shared_string& rhs) { lhs.swap(rhs); }
-inline const char* data(const shared_string& s) { return s.data(); }
-inline int size(const shared_string& s) { return s.size(); }
+inline const char* string_data(const shared_string& s) { return s.data(); }
+inline int string_size(const shared_string& s) { return s.size(); }
 
 }  // namespace rethink
