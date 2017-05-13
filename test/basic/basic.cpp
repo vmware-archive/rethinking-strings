@@ -1,6 +1,7 @@
 // Copyright (c) 2017 VMware, Inc. All Rights Reserved.
 
-#include <rethink/rethink.h>
+#include <rethink/ref_string.h>
+#include <rethink/shared_string.h>
 
 #include <cstring>
 
