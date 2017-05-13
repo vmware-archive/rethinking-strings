@@ -34,6 +34,7 @@ add_library(Catch INTERFACE)
 target_include_directories(Catch INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/Catch/include)
 
 add_subdirectory(test/basic)
+add_subdirectory(test/size)
 
 # Add a 'check' target that depends on chap and dumps output on failure. It
 # seems like this should be possible without a custom target, but attempts to
@@ -45,13 +46,13 @@ if (CMAKE_CONFIGURATION_TYPES)
         COMMAND ${CMAKE_CTEST_COMMAND}
             --force-new-ctest-process --output-on-failure
             --build-config "$<CONFIGURATION>"
-        DEPENDS basic rethink
+        DEPENDS basic std rth rethink
     )
 else()
     add_custom_target(check
         COMMAND ${CMAKE_CTEST_COMMAND}
             --force-new-ctest-process --output-on-failure
-        DEPENDS basic rethink
+        DEPENDS basic std rth rethink
     )
 endif()
 
