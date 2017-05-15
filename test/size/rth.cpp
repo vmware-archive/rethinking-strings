@@ -10,7 +10,7 @@ using namespace std;
 using namespace rethink;
 
 constexpr ref_string kShort{"foo"};
-static_assert(kShort.size() == 4);
+static_assert(kShort.size() == 3);
 constexpr ref_string kLong{"supercalifragilisticexpialidocious"};
 
 void print(ref_string s) {

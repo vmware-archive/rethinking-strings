@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <rethink/rethink.h>
+
 #include <utility>
 
 namespace rethink {
@@ -10,12 +12,16 @@ namespace rethink {
 
 class ref_string {
  public:
-  template <int N>
-  constexpr ref_string(char const (&a)[N]) : _size(N), _data(&a[0]) {}
+  constexpr ref_string() noexcept : _size(0), _data(nullptr) {}
   template <class T>
   constexpr ref_string(const T& t)
       : _size(string_size(t)), _data(string_data(t)) {}
-  constexpr ref_string() noexcept : _size(0), _data(nullptr) {}
+  template <class T>
+  ref_string& operator=(const T& t) {
+    _size = string_size(t);
+    _data = string_data(t);
+    return *this;
+  }
   void swap(ref_string& rhs) noexcept {
     std::swap(_data, rhs._data);
     std::swap(_size, rhs._size);

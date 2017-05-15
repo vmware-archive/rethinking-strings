@@ -1,6 +1,10 @@
 # Copyright (c) 2017 VMware, Inc. All Rights Reserved.
 
-add_executable(basic basic.cpp)
+add_executable(basic
+               basic.cpp
+               ref_string_test.cpp
+               shared_string_test.cpp
+)
 target_link_libraries(basic Catch rethink)
 
 add_test(
