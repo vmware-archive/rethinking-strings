@@ -3,7 +3,7 @@
 #pragma once
 
 #include <rethink/api.h>
-#include <rethink/ctrl_block.h>
+#include <rethink/detail/ctrl_block.h>
 
 #include <utility>
 
@@ -13,11 +13,11 @@ namespace rethink {
 
 class unique_string {
  public:
-  constexpr shared_string() = default;
+  unique_string() = default;
 
-  unique_string(const unique_string& rhs) : unique_string(ref_string(rhs)) {}
+  unique_string(unique_string const& rhs) : unique_string(ref_string(rhs)) {}
 
-  unique_string& operator=(const unique_string& rhs) {
+  unique_string& operator=(unique_string const& rhs) {
     return operator=(ref_string(rhs));
   }
 
@@ -33,33 +33,27 @@ class unique_string {
   void swap(unique_string& rhs) noexcept { std::swap(_data, rhs._data); }
 
   ~unique_string() {
-    if (_data != nullptr) {
-      ctrl()->release();
-    }
+    detail::release_ctrl_block(_data);
   }
 
  public:
-  explicit unique_string(ref_string r) : _data(detail::new_ctrl_block(r)){};
+  unique_string(ref_string r) : _data(detail::new_ctrl_block(r)){};
 
-  unique_string& operator=(const ref_string& rhs) {
-    unique_string tmp(rhs);
+  unique_string& operator=(ref_string r) {
+    unique_string tmp(r);
     swap(tmp);
     return *this;
   }
 
-  const char* data() const { return _cap == 0 ? this : _data; }
+  char const* data() const noexcept { return _data; }
 
-  char* data() { return _cap == 0 ? this : _data; }
+  char* data() noexcept { return _data; }
 
-  int size() const { return ctrl()->len; }
+  int size() const noexcept { return detail::size_ctrl_block(_data); }
 
  private:
-  detail::ctrl_block* ctrl() const noexcept {
-    return detail::ctrl_block_from_data(_data);
-  }
-
-  const char* detach() noexcept {
-    const char* tmp = _data;
+  char* detach() noexcept {
+    char* tmp = _data;
     _data = nullptr;
     return tmp;
   }
@@ -72,8 +66,8 @@ class unique_string {
 
 inline void swap(unique_string& lhs, unique_string& rhs) { lhs.swap(rhs); }
 
-inline const char* string_data(const unique_string& s) { return s.data(); }
+inline char const* string_data(unique_string const& s) { return s.data(); }
 
-inline int string_size(const unique_string& s) { return s.size(); }
+inline int string_size(unique_string const& s) { return s.size(); }
 
 }  // namespace rethink
