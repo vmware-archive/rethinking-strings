@@ -16,11 +16,11 @@ class shared_string {
  public:
   constexpr shared_string() = default;
 
-  shared_string(const shared_string& rhs) : _data(rhs._data) {
+  shared_string(shared_string const& rhs) : _data(rhs._data) {
     detail::retain_ctrl_block(_data);
   }
 
-  shared_string& operator=(const shared_string& rhs) {
+  shared_string& operator=(shared_string const& rhs) {
     if (this != &rhs) {
       shared_string tmp(rhs);
       swap(tmp);
@@ -48,25 +48,25 @@ class shared_string {
     return *this;
   }
 
-  const char* data() const noexcept { return _data; }
+  char const* data() const noexcept { return _data; }
 
   int size() const noexcept { return detail::size_ctrl_block(_data); }
 
  private:
-  const char* detach() noexcept {
-    const char* tmp = _data;
+  char const* detach() noexcept {
+    char const* tmp = _data;
     _data = nullptr;
     return tmp;
   }
 
  private:
-  const char* _data{nullptr};
+  char const* _data{nullptr};
 };
 
 //------------------------------------------------------------------------------
 
 inline void swap(shared_string& lhs, shared_string& rhs) { lhs.swap(rhs); }
-inline const char* string_data(const shared_string& s) { return s.data(); }
-inline int string_size(const shared_string& s) { return s.size(); }
+inline char const* string_data(shared_string const& s) { return s.data(); }
+inline int string_size(shared_string const& s) { return s.size(); }
 
 }  // namespace rethink

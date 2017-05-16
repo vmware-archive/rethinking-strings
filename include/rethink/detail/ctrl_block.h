@@ -18,7 +18,7 @@ class ctrl_block {
   constexpr ctrl_block() { ++_s_shared_count; }
   ctrl_block(ctrl_block const&) = delete;
   template <class T>
-  explicit ctrl_block(const T& t) : _size(string_size(t)) {
+  explicit ctrl_block(T const& t) : _size(string_size(t)) {
     std::memcpy(_data, string_data(t), _size);
     *(_data + _size) = '\0';
     ++_s_shared_count;
@@ -33,7 +33,7 @@ class ctrl_block {
   }
 
  public:
-  const char* data() const noexcept { return _data; }
+  char const* data() const noexcept { return _data; }
   char* data() noexcept { return _data; }
   int size() const noexcept { return _size; }
   int ref_count() const noexcept { return _rc; }
@@ -44,14 +44,14 @@ class ctrl_block {
 
  private:
   mutable std::atomic<int> _rc{1};
-  int const _size{0};
+  int _size{0};
   char _data[1]{'\0'};
 };
 
 //------------------------------------------------------------------------------
 
 template <class T>
-inline char* new_ctrl_block(const T& t) {
+inline char* new_ctrl_block(T const& t) {
   void* p = malloc(sizeof(ctrl_block) + string_size(t));
   new (p) ctrl_block(t);
   return reinterpret_cast<ctrl_block*>(p)->data();
@@ -68,14 +68,14 @@ inline ctrl_block* ctrl_block_from_data(char* d) {
   return reinterpret_cast<ctrl_block*>(ctrl);
 }
 
-inline const ctrl_block* ctrl_block_from_data(const char* d) {
+inline ctrl_block const* ctrl_block_from_data(char const* d) {
   uintptr_t ctrl = reinterpret_cast<uintptr_t>(d) - k_ctrl_block_offset;
   return reinterpret_cast<ctrl_block*>(ctrl);
 }
 
 //------------------------------------------------------------------------------
 
-inline void retain_ctrl_block(const char* data) {
+inline void retain_ctrl_block(char const* data) {
   if (data != nullptr) {
     ctrl_block_from_data(data)->retain();
   }
@@ -83,7 +83,7 @@ inline void retain_ctrl_block(const char* data) {
 
 //------------------------------------------------------------------------------
 
-inline void release_ctrl_block(const char* data) {
+inline void release_ctrl_block(char const* data) {
   if (data != nullptr) {
     ctrl_block_from_data(data)->release();
   }
@@ -91,7 +91,7 @@ inline void release_ctrl_block(const char* data) {
 
 //------------------------------------------------------------------------------
 
-inline int size_ctrl_block(const char* data) {
+inline int size_ctrl_block(char const* data) {
   return data != nullptr ? ctrl_block_from_data(data)->size() : 0;
 }
 
