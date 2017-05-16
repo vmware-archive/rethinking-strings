@@ -12,6 +12,13 @@ namespace rethink {
 
 //------------------------------------------------------------------------------
 
+class shared_string;
+void swap(shared_string& lhs, shared_string& rhs);
+char const* string_data(shared_string const& s);
+int string_size(shared_string const& s);
+
+//------------------------------------------------------------------------------
+
 class shared_string {
  public:
   shared_string() = default;

@@ -11,6 +11,14 @@ namespace rethink {
 
 //------------------------------------------------------------------------------
 
+class unique_string;
+void swap(unique_string& lhs, unique_string& rhs);
+char const* string_data(unique_string const& s);
+char* string_data(unique_string& s);
+int string_size(unique_string const& s);
+
+//------------------------------------------------------------------------------
+
 class unique_string {
  public:
   unique_string() = default;
@@ -32,9 +40,7 @@ class unique_string {
 
   void swap(unique_string& rhs) noexcept { std::swap(_data, rhs._data); }
 
-  ~unique_string() {
-    detail::release_ctrl_block(_data);
-  }
+  ~unique_string() { detail::release_ctrl_block(_data); }
 
  public:
   unique_string(ref_string r) : _data(detail::new_ctrl_block(r)){};
@@ -67,6 +73,8 @@ class unique_string {
 inline void swap(unique_string& lhs, unique_string& rhs) { lhs.swap(rhs); }
 
 inline char const* string_data(unique_string const& s) { return s.data(); }
+
+inline char* string_data(unique_string& s) { return s.data(); }
 
 inline int string_size(unique_string const& s) { return s.size(); }
 
