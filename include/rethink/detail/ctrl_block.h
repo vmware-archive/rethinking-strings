@@ -26,6 +26,7 @@ class ctrl_block {
   void retain() const noexcept { ++_rc; }
   void release() const noexcept {
     if (_rc.fetch_sub(1) == 1) {
+      this->~ctrl_block();
       free(const_cast<ctrl_block*>(this));
       --_s_shared_count;
     }
@@ -46,6 +47,15 @@ class ctrl_block {
   int const _size{0};
   char _data[1]{'\0'};
 };
+
+//------------------------------------------------------------------------------
+
+template <class T>
+inline char* new_ctrl_block(const T& t) {
+  void* p = malloc(sizeof(ctrl_block) + string_size(t));
+  new (p) ctrl_block(t);
+  return reinterpret_cast<ctrl_block*>(p)->data();
+}
 
 //------------------------------------------------------------------------------
 
@@ -83,15 +93,6 @@ inline void release_ctrl_block(const char* data) {
 
 inline int size_ctrl_block(const char* data) {
   return data != nullptr ? ctrl_block_from_data(data)->size() : 0;
-}
-
-//------------------------------------------------------------------------------
-
-template <class T>
-inline char* new_ctrl_block(const T& t) {
-  void* p = malloc(sizeof(ctrl_block) + string_size(t));
-  new (p) ctrl_block(t);
-  return reinterpret_cast<ctrl_block*>(p)->data();
 }
 
 }  // namespace detail

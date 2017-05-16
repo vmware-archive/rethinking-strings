@@ -9,7 +9,7 @@ using namespace rethink;
 using namespace rethink::detail;
 using namespace std;
 
-TEST_CASE("new ctrol block", "[ctrl_block]") {
+TEST_CASE("ctrl_block instance count and reference count", "[ctrl_block]") {
   size_t start = ctrl_block::instance_count();
   ref_string r = "foo";
   char const* data = new_ctrl_block(r);
@@ -20,15 +20,3 @@ TEST_CASE("new ctrol block", "[ctrl_block]") {
   CHECK(ctrl_block::instance_count() == start);
 }
 
-TEST_CASE("Ctrl block offset", "[ctrl_block]") {
-  size_t start = ctrl_block::instance_count();
-
-  ctrl_block* ctrl = new ctrl_block();
-  REQUIRE(ctrl->ref_count() == 1);
-  CHECK(ctrl_block::instance_count() == start + 1);
-
-  CHECK(ctrl_block_from_data(ctrl->data()) == ctrl);
-
-  ctrl->release();
-  CHECK(ctrl_block::instance_count() == start);
-}
