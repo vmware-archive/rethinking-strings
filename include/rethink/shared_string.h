@@ -41,7 +41,12 @@ class shared_string {
   ~shared_string() { detail::release_shared_ctrl(_data); }
 
  public:
-  explicit shared_string(ref_string r) : _data(detail::new_shared_ctrl(r)){};
+  shared_string(ref_string r) : _data(detail::new_shared_ctrl(r)){};
+  shared_string& operator=(ref_string r) {
+    shared_string tmp(r);
+    swap(tmp);
+    return *this;
+  }
 
   const char* data() const noexcept { return _data; }
 
