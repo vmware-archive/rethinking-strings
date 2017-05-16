@@ -14,11 +14,11 @@ using namespace std;
 #include "catch.hpp"
 
 #if 0
-TEST_CASE("k_shared_ctrl_offset is good", "[shared_string]") {
-  shared_ctrl ctrl;
+TEST_CASE("k_ctrl_block_offset is good", "[shared_string]") {
+  ctrl_block ctrl;
   uintptr_t data = reinterpret_cast<uintptr_t>(&ctrl.data[0]);
   ptrdiff_t offset = data - reinterpret_cast<uintptr_t>(&ctrl);
-  REQUIRE(offset == k_shared_ctrl_offset);
+  REQUIRE(offset == k_ctrl_block_offset);
 }
 
 TEST_CASE("The empty shared_string is empty", "[shared_string]") {

@@ -13,17 +13,17 @@ namespace detail {
 
 //------------------------------------------------------------------------------
 
-RETHINK_API void* allocate_shared_ctrl(int size);
-RETHINK_API void free_shared_ctrl(void* p);
+RETHINK_API void* allocate_ctrl_block(int size);
+RETHINK_API void free_ctrl_block(void* p);
 
 //------------------------------------------------------------------------------
 
-class shared_ctrl {
+class ctrl_block {
  public:
-  constexpr shared_ctrl() { ++_s_shared_count; }
-  shared_ctrl(shared_ctrl const&) = delete;
+  constexpr ctrl_block() { ++_s_shared_count; }
+  ctrl_block(ctrl_block const&) = delete;
   template <class T>
-  explicit shared_ctrl(const T& t) : len(string_size(t)) {
+  explicit ctrl_block(const T& t) : len(string_size(t)) {
     char* d = const_cast<char*>(&data[0]);
     std::memcpy(d, string_data(t), len);
     *(d + len) = '\0';
@@ -32,7 +32,7 @@ class shared_ctrl {
   void retain() noexcept { ++_rc; }
   void release() noexcept {
     if (_rc.fetch_sub(1) == 1) {
-      free_shared_ctrl(this);
+      free_ctrl_block(this);
       --_s_shared_count;
     }
   }
@@ -52,44 +52,44 @@ class shared_ctrl {
 
 //------------------------------------------------------------------------------
 
-constexpr ptrdiff_t k_shared_ctrl_offset{8};
+constexpr ptrdiff_t k_ctrl_block_offset{8};
 
 //------------------------------------------------------------------------------
 
-inline shared_ctrl* shared_ctrl_from_data(const char* d) {
-  uintptr_t ctrl = reinterpret_cast<uintptr_t>(d) - k_shared_ctrl_offset;
-  return reinterpret_cast<shared_ctrl*>(ctrl);
+inline ctrl_block* ctrl_block_from_data(const char* d) {
+  uintptr_t ctrl = reinterpret_cast<uintptr_t>(d) - k_ctrl_block_offset;
+  return reinterpret_cast<ctrl_block*>(ctrl);
 }
 
 //------------------------------------------------------------------------------
 
-inline void retain_shared_ctrl(const char* data) {
+inline void retain_ctrl_block(const char* data) {
   if (data != nullptr) {
-    shared_ctrl_from_data(data)->retain();
+    ctrl_block_from_data(data)->retain();
   }
 }
 
 //------------------------------------------------------------------------------
 
-inline void release_shared_ctrl(const char* data) {
+inline void release_ctrl_block(const char* data) {
   if (data != nullptr) {
-    shared_ctrl_from_data(data)->release();
+    ctrl_block_from_data(data)->release();
   }
 }
 
 //------------------------------------------------------------------------------
 
-inline int size_shared_ctrl(const char* data) {
-  return data != nullptr ? shared_ctrl_from_data(data)->len : 0;
+inline int size_ctrl_block(const char* data) {
+  return data != nullptr ? ctrl_block_from_data(data)->len : 0;
 }
 
 //------------------------------------------------------------------------------
 
 template <class T>
-inline char const* new_shared_ctrl(const T& t) {
-  void* p = allocate_shared_ctrl(string_size(t));
-  new (p) shared_ctrl(t);
-  return &reinterpret_cast<shared_ctrl*>(p)->data[0];
+inline char const* new_ctrl_block(const T& t) {
+  void* p = allocate_ctrl_block(string_size(t));
+  new (p) ctrl_block(t);
+  return &reinterpret_cast<ctrl_block*>(p)->data[0];
 }
 
 }  // namespace detail

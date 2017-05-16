@@ -39,7 +39,7 @@ class unique_string {
   }
 
  public:
-  explicit unique_string(ref_string r) : _data(detail::new_shared_ctrl(r)){};
+  explicit unique_string(ref_string r) : _data(detail::new_ctrl_block(r)){};
 
   unique_string& operator=(const ref_string& rhs) {
     unique_string tmp(rhs);
@@ -54,8 +54,8 @@ class unique_string {
   int size() const { return ctrl()->len; }
 
  private:
-  detail::shared_ctrl* ctrl() const noexcept {
-    return detail::shared_ctrl_from_data(_data);
+  detail::ctrl_block* ctrl() const noexcept {
+    return detail::ctrl_block_from_data(_data);
   }
 
   const char* detach() noexcept {
