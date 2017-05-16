@@ -2,9 +2,10 @@
 
 add_executable(basic
                basic.cpp
+               ctrl_block_test.cpp
                ref_string_test.cpp
                shared_string_test.cpp
-               ctrl_block_test.cpp
+               unique_string_test.cpp
 )
 target_link_libraries(basic Catch rethink)
 

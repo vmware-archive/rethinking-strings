@@ -14,7 +14,7 @@ namespace rethink {
 
 class shared_string {
  public:
-  constexpr shared_string() = default;
+  shared_string() = default;
 
   shared_string(shared_string const& rhs) : _data(rhs._data) {
     detail::retain_ctrl_block(_data);
