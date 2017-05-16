@@ -17,7 +17,7 @@ class shared_string {
   constexpr shared_string() = default;
 
   shared_string(const shared_string& rhs) : _data(rhs._data) {
-    detail::retain_shared_ctrl(_data);
+    detail::retain_ctrl_block(_data);
   }
 
   shared_string& operator=(const shared_string& rhs) {
@@ -38,10 +38,10 @@ class shared_string {
 
   void swap(shared_string& rhs) noexcept { std::swap(_data, rhs._data); }
 
-  ~shared_string() { detail::release_shared_ctrl(_data); }
+  ~shared_string() { detail::release_ctrl_block(_data); }
 
  public:
-  shared_string(ref_string r) : _data(detail::new_shared_ctrl(r)){};
+  shared_string(ref_string r) : _data(detail::new_ctrl_block(r)){};
   shared_string& operator=(ref_string r) {
     shared_string tmp(r);
     swap(tmp);
@@ -50,7 +50,7 @@ class shared_string {
 
   const char* data() const noexcept { return _data; }
 
-  int size() const noexcept { return detail::size_shared_ctrl(_data); }
+  int size() const noexcept { return detail::size_ctrl_block(_data); }
 
  private:
   const char* detach() noexcept {

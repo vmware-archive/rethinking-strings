@@ -7,16 +7,16 @@ namespace detail {
 
 //------------------------------------------------------------------------------
 
-std::atomic<std::size_t> shared_ctrl::_s_shared_count;
+std::atomic<std::size_t> ctrl_block::_s_shared_count;
 
 //------------------------------------------------------------------------------
 
-void free_shared_ctrl(void* p) { free(p); }
+void free_ctrl_block(void* p) { free(p); }
 
 //------------------------------------------------------------------------------
 
-void* allocate_shared_ctrl(int size) {
-  void* p = malloc(sizeof(shared_ctrl) + size);
+void* allocate_ctrl_block(int size) {
+  void* p = malloc(sizeof(ctrl_block) + size);
   // TODO assert alignment.
   return p;
 }
