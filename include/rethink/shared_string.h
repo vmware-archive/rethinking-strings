@@ -48,9 +48,21 @@ class shared_string {
   ~shared_string() { detail::release_ctrl_block(_data); }
 
  public:
-  shared_string(ref_string r) : _data(detail::new_ctrl_block(r)){};
-  shared_string& operator=(ref_string r) {
+  template <class T>
+  shared_string(T r) : _data(detail::new_ctrl_block(r)){};
+  template <class T>
+  shared_string& operator=(T r) {
     shared_string tmp(r);
+    swap(tmp);
+    return *this;
+  }
+
+  template <class T, std::enable_if_t<!std::is_same_v<T, shared_string>>>
+  shared_string(T&& rhs) : _data(std::forward<T>(rhs).transfer()) {}
+
+  template <class T, std::enable_if_t<!std::is_same_v<T, shared_string>>>
+  shared_string& operator=(T&& rhs) {
+    shared_string tmp(std::forward<T>(rhs).transfer());
     swap(tmp);
     return *this;
   }
@@ -58,6 +70,22 @@ class shared_string {
   char const* data() const noexcept { return _data; }
 
   int size() const noexcept { return detail::size_ctrl_block(_data); }
+
+  char* transfer() && {
+    if (_data == nullptr) {
+      return nullptr;
+    }
+    char* tmp = const_cast<char*>(_data);
+    detail::ctrl_block* ctrl = detail::ctrl_block_from_data(tmp);
+    if (ctrl->ref_count() == 1) {
+      _data = nullptr;
+      return tmp;
+    }
+    char* data = detail::new_ctrl_block(*this);
+    _data = nullptr;
+    ctrl->release();
+    return data;
+  }
 
  private:
   char const* detach() noexcept {

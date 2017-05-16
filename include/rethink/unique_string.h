@@ -43,10 +43,22 @@ class unique_string {
   ~unique_string() { detail::release_ctrl_block(_data); }
 
  public:
-  unique_string(ref_string r) : _data(detail::new_ctrl_block(r)){};
+  template <class T>
+  unique_string(T r) : _data(detail::new_ctrl_block(r)){};
 
-  unique_string& operator=(ref_string r) {
+  template <class T>
+  unique_string& operator=(T r) {
     unique_string tmp(r);
+    swap(tmp);
+    return *this;
+  }
+
+  template <class T, std::enable_if_t<!std::is_same_v<T, unique_string>>>
+  unique_string(T&& rhs) : _data(std::forward<T>(rhs).transfer()) {}
+
+  template <class T, std::enable_if_t<!std::is_same_v<T, unique_string>>>
+  unique_string& operator=(T&& rhs) {
+    unique_string tmp(std::forward<T>(rhs).transfer());
     swap(tmp);
     return *this;
   }
@@ -56,6 +68,12 @@ class unique_string {
   char* data() noexcept { return _data; }
 
   int size() const noexcept { return detail::size_ctrl_block(_data); }
+
+  char *transfer() && {
+    char* tmp = _data;
+    _data = nullptr;
+    return tmp;
+  }
 
  private:
   char* detach() noexcept {

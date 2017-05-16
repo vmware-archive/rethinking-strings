@@ -5,6 +5,7 @@ add_executable(basic
                ctrl_block_test.cpp
                ref_string_test.cpp
                shared_string_test.cpp
+               transfer_owner_test.cpp
                unique_string_test.cpp
 )
 target_link_libraries(basic Catch rethink)
