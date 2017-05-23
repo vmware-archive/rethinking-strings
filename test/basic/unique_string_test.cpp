@@ -14,6 +14,14 @@ TEST_CASE("Empty unique string is empty", "[unique_string]") {
   CHECK(string_size(s) == 0);
 }
 
+TEST_CASE("unique_string is_tranferable", "[unique_string]") {
+  CHECK(rethink::is_transferable_v<unique_string &&> == true);
+
+  CHECK(rethink::is_transferable_v<unique_string> == false);
+  CHECK(rethink::is_transferable_v<unique_string&> == false);
+  CHECK(rethink::is_transferable_v<unique_string const&> == false);
+}
+
 TEST_CASE("Unique string value ops", "[unique_string]") {
   size_t start = ctrl_block::instance_count();
 
@@ -86,3 +94,5 @@ TEST_CASE("Unique strings do not share storage", "[unique_string]") {
   }
   CHECK(ctrl_block::instance_count() == start);
 }
+#if 0
+#endif

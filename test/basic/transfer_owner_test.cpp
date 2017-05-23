@@ -32,22 +32,6 @@ TEST_CASE("Transfer from shared to unique", "[unique_string] [shared_string]") {
   CHECK(u.size() == 3);
 }
 
-TEST_CASE("Transfer from doubly shared to unique",
-          "[unique_string] [shared_string]") {
-  size_t start = ctrl_block::instance_count();
-  shared_string s = ref_string("foo");
-  shared_string c = s;
-
-  CHECK(reference_count(s) == 2);
-  CHECK(total_control_blocks() == start + 1);
-
-  unique_string u(move(s));
-
-  CHECK(total_control_blocks() == start + 2);
-  CHECK(s.size() == 0);
-  CHECK(u.size() == 3);
-}
-
 TEST_CASE("Transfer from unique to shared", "[unique_string] [shared_string]") {
   size_t start = ctrl_block::instance_count();
   unique_string u = ref_string("foo");
@@ -59,4 +43,21 @@ TEST_CASE("Transfer from unique to shared", "[unique_string] [shared_string]") {
   CHECK(total_control_blocks() == start + 1);
   CHECK(u.size() == 0);
   CHECK(s.size() == 3);
+}
+
+TEST_CASE("Transfer from doubly shared to unique",
+          "[unique_string] [shared_string]") {
+  size_t start = ctrl_block::instance_count();
+  shared_string s = ref_string("foo");
+  shared_string c = s;
+  CHECK(s.size() == 3);
+
+  CHECK(reference_count(s) == 2);
+  CHECK(total_control_blocks() == start + 1);
+
+  unique_string u(move(s));
+
+  CHECK(total_control_blocks() == start + 2);
+  CHECK(s.size() == 3);
+  CHECK(u.size() == 3);
 }

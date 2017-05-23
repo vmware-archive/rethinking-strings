@@ -5,6 +5,7 @@
 #include <rethink/api.h>
 #include <rethink/detail/ctrl_block.h>
 
+#include <iostream>
 #include <utility>
 
 namespace rethink {
@@ -21,19 +22,24 @@ int string_size(unique_string const& s);
 
 class unique_string {
  public:
-  unique_string() = default;
+  unique_string() : _data(nullptr) {}
 
-  unique_string(unique_string const& rhs) : unique_string(ref_string(rhs)) {}
+  unique_string(unique_string const& rhs)
+      : _data(detail::new_ctrl_block(rhs)) {}
 
   unique_string& operator=(unique_string const& rhs) {
-    return operator=(ref_string(rhs));
+    if (&rhs != this) {
+      unique_string tmp(rhs);
+      swap(tmp);
+    }
+    return *this;
   }
 
   unique_string(unique_string&& rhs) noexcept : _data(rhs.detach()) {}
 
   unique_string& operator=(unique_string&& rhs) noexcept {
     if (&rhs != this) {
-      _data = rhs.detach();
+      _data = std::move(rhs).detach();
     }
     return *this;
   }
@@ -42,23 +48,24 @@ class unique_string {
 
   ~unique_string() { detail::release_ctrl_block(_data); }
 
+  template <class T>
+  struct view;
+
  public:
   template <class T>
-  unique_string(T r) : _data(detail::new_ctrl_block(r)){};
-
-  template <class T>
-  unique_string& operator=(T r) {
-    unique_string tmp(r);
-    swap(tmp);
-    return *this;
+  unique_string(T&& rhs) {
+    if
+      constexpr(is_transferable_v<decltype(rhs)>) {
+        _data = std::forward<T>(rhs).transfer();
+      }
+    else {
+      _data = detail::new_ctrl_block(rhs);
+    }
   }
 
-  template <class T, std::enable_if_t<!std::is_same_v<T, unique_string>>>
-  unique_string(T&& rhs) : _data(std::forward<T>(rhs).transfer()) {}
-
-  template <class T, std::enable_if_t<!std::is_same_v<T, unique_string>>>
+  template <class T>
   unique_string& operator=(T&& rhs) {
-    unique_string tmp(std::forward<T>(rhs).transfer());
+    unique_string tmp(std::forward<T>(rhs));
     swap(tmp);
     return *this;
   }
@@ -69,11 +76,7 @@ class unique_string {
 
   int size() const noexcept { return detail::size_ctrl_block(_data); }
 
-  char *transfer() && {
-    char* tmp = _data;
-    _data = nullptr;
-    return tmp;
-  }
+  char* transfer() && { return detach(); }
 
  private:
   char* detach() noexcept {
@@ -83,7 +86,7 @@ class unique_string {
   }
 
  private:
-  char* _data{nullptr};
+  char* _data;
 };
 
 //------------------------------------------------------------------------------
@@ -95,5 +98,8 @@ inline char const* string_data(unique_string const& s) { return s.data(); }
 inline char* string_data(unique_string& s) { return s.data(); }
 
 inline int string_size(unique_string const& s) { return s.size(); }
+
+template <>
+struct is_transferable<unique_string&&> : std::true_type {};
 
 }  // namespace rethink

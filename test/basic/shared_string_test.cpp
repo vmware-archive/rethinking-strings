@@ -14,6 +14,14 @@ TEST_CASE("Empty shared string is empty", "[shared_string]") {
   CHECK(string_size(s) == 0);
 }
 
+TEST_CASE("shared_string is_tranferable", "[shared_string]") {
+  CHECK(rethink::is_transferable_v<shared_string &&> == true);
+
+  CHECK(rethink::is_transferable_v<shared_string> == false);
+  CHECK(rethink::is_transferable_v<shared_string&> == false);
+  CHECK(rethink::is_transferable_v<shared_string const&> == false);
+}
+
 TEST_CASE("Shared string value ops", "[shared_string]") {
   size_t start = ctrl_block::instance_count();
 

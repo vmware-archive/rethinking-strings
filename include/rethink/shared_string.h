@@ -6,6 +6,7 @@
 #include <rethink/detail/ctrl_block.h>
 #include <rethink/ref_string.h>
 
+#include <iostream>
 #include <utility>
 
 namespace rethink {
@@ -50,6 +51,7 @@ class shared_string {
  public:
   template <class T>
   shared_string(T r) : _data(detail::new_ctrl_block(r)){};
+
   template <class T>
   shared_string& operator=(T r) {
     shared_string tmp(r);
@@ -58,11 +60,19 @@ class shared_string {
   }
 
   template <class T, std::enable_if_t<!std::is_same_v<T, shared_string>>>
-  shared_string(T&& rhs) : _data(std::forward<T>(rhs).transfer()) {}
+  shared_string(T&& rhs) {
+    if
+      constexpr(is_transferable_v<decltype(rhs)>) {
+        _data = std::forward<T>(rhs).transfer();
+      }
+    else {
+      _data = detail::new_ctrl_block(rhs);
+    }
+  }
 
   template <class T, std::enable_if_t<!std::is_same_v<T, shared_string>>>
   shared_string& operator=(T&& rhs) {
-    shared_string tmp(std::forward<T>(rhs).transfer());
+    shared_string tmp(std::forward<T>(rhs));
     swap(tmp);
     return *this;
   }
@@ -75,16 +85,10 @@ class shared_string {
     if (_data == nullptr) {
       return nullptr;
     }
-    char* tmp = const_cast<char*>(_data);
-    detail::ctrl_block* ctrl = detail::ctrl_block_from_data(tmp);
-    if (ctrl->ref_count() == 1) {
-      _data = nullptr;
-      return tmp;
+    if (detail::ctrl_block_from_data(_data)->ref_count() == 1) {
+      return const_cast<char*>(detach());
     }
-    char* data = detail::new_ctrl_block(*this);
-    _data = nullptr;
-    ctrl->release();
-    return data;
+    return detail::new_ctrl_block(*this);
   }
 
  private:
@@ -103,5 +107,7 @@ class shared_string {
 inline void swap(shared_string& lhs, shared_string& rhs) { lhs.swap(rhs); }
 inline char const* string_data(shared_string const& s) { return s.data(); }
 inline int string_size(shared_string const& s) { return s.size(); }
+template <>
+struct is_transferable<shared_string&&> : std::true_type {};
 
 }  // namespace rethink

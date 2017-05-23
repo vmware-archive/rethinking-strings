@@ -5,6 +5,7 @@
 #include <rethink/api.h>
 
 #include <string>
+#include <type_traits>
 
 namespace rethink {
 
@@ -36,5 +37,13 @@ int string_size(T t) {
   // TODO runtime assert if > INT_MAX.
   return std::strlen(t);
 }
+
+//------------------------------------------------------------------------------
+
+template <class T>
+struct is_transferable : std::false_type {};
+
+template <class T>
+inline constexpr bool is_transferable_v = is_transferable<T>::value;
 
 }  // namespace rethink
