@@ -41,9 +41,24 @@ constexpr const char* string_data(char const (&a)[N]) {
 //------------------------------------------------------------------------------
 
 template <class T>
-struct is_transferable : std::false_type {};
+struct is_transferable_impl : std::false_type {};
+
+template <class T>
+struct is_transferable : std::conjunction<is_transferable_impl<std::decay_t<T>>,
+                                          std::is_rvalue_reference<T>> {};
 
 template <class T>
 inline constexpr bool is_transferable_v = is_transferable<T>::value;
+
+//------------------------------------------------------------------------------
+
+template <class T>
+struct is_shareable_impl : std::false_type {};
+
+template <class T>
+struct is_shareable : is_shareable_impl<std::decay_t<T>> {};
+
+template <class T>
+inline constexpr bool is_shareable_v = is_shareable<T>::value;
 
 }  // namespace rethink

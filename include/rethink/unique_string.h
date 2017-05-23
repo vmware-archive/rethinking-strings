@@ -73,6 +73,6 @@ inline char* string_data(unique_string& s) { return s.data(); }
 inline int string_size(unique_string const& s) { return s.size(); }
 
 template <>
-struct is_transferable<unique_string&&> : std::true_type {};
+struct is_transferable_impl<unique_string> : std::true_type {};
 
 }  // namespace rethink

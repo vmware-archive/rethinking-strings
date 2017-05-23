@@ -14,12 +14,22 @@ TEST_CASE("Empty shared string is empty", "[shared_string]") {
   CHECK(string_size(s) == 0);
 }
 
-TEST_CASE("shared_string is_tranferable", "[shared_string]") {
+TEST_CASE("shared_string is_transferable", "[shared_string]") {
   CHECK(rethink::is_transferable_v<shared_string &&> == true);
 
   CHECK(rethink::is_transferable_v<shared_string> == false);
-  CHECK(rethink::is_transferable_v<shared_string&> == false);
-  CHECK(rethink::is_transferable_v<shared_string const&> == false);
+  CHECK(rethink::is_transferable_v<shared_string &> == false);
+  CHECK(rethink::is_transferable_v<shared_string const &> == false);
+  CHECK(rethink::is_transferable_v<shared_string *> == false);
+}
+
+TEST_CASE("shared_string is_shareable", "[shared_string]") {
+  CHECK(rethink::is_shareable_v<shared_string &&> == true);
+  CHECK(rethink::is_shareable_v<shared_string> == true);
+  CHECK(rethink::is_shareable_v<shared_string &> == true);
+  CHECK(rethink::is_shareable_v<shared_string const &> == true);
+
+  CHECK(rethink::is_shareable_v<shared_string *> == false);
 }
 
 TEST_CASE("Shared string value ops", "[shared_string]") {
@@ -90,13 +100,13 @@ TEST_CASE("Shared string value ops", "[shared_string]") {
 TEST_CASE("Shared string share storage", "[shared_string]") {
   size_t start = ctrl_block::instance_count();
   {
-      shared_string one = ref_string("foo");
+    shared_string one = ref_string("foo");
+    CHECK(ctrl_block::instance_count() == start + 1);
+    {
+      shared_string two = one;
       CHECK(ctrl_block::instance_count() == start + 1);
-      {
-        shared_string two = one;
-        CHECK(ctrl_block::instance_count() == start + 1);
-      }
-      CHECK(ctrl_block::instance_count() == start + 1);
+    }
+    CHECK(ctrl_block::instance_count() == start + 1);
   }
   CHECK(ctrl_block::instance_count() == start);
 }

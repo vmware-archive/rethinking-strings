@@ -14,12 +14,21 @@ TEST_CASE("Empty unique string is empty", "[unique_string]") {
   CHECK(string_size(s) == 0);
 }
 
-TEST_CASE("unique_string is_tranferable", "[unique_string]") {
+TEST_CASE("unique_string is_transferable", "[unique_string]") {
   CHECK(rethink::is_transferable_v<unique_string &&> == true);
 
   CHECK(rethink::is_transferable_v<unique_string> == false);
-  CHECK(rethink::is_transferable_v<unique_string&> == false);
-  CHECK(rethink::is_transferable_v<unique_string const&> == false);
+  CHECK(rethink::is_transferable_v<unique_string &> == false);
+  CHECK(rethink::is_transferable_v<unique_string const &> == false);
+  CHECK(rethink::is_transferable_v<unique_string *> == false);
+}
+
+TEST_CASE("unique_string is_shareable", "[unique_string]") {
+  CHECK(rethink::is_shareable_v<unique_string &&> == false);
+  CHECK(rethink::is_shareable_v<unique_string> == false);
+  CHECK(rethink::is_shareable_v<unique_string &> == false);
+  CHECK(rethink::is_shareable_v<unique_string const &> == false);
+  CHECK(rethink::is_shareable_v<unique_string *> == false);
 }
 
 TEST_CASE("Unique string value ops", "[unique_string]") {

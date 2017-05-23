@@ -106,7 +106,11 @@ class shared_string {
 inline void swap(shared_string& lhs, shared_string& rhs) { lhs.swap(rhs); }
 inline char const* string_data(shared_string const& s) { return s.data(); }
 inline int string_size(shared_string const& s) { return s.size(); }
+
 template <>
-struct is_transferable<shared_string&&> : std::true_type {};
+struct is_transferable_impl<shared_string> : std::true_type {};
+
+template <>
+struct is_shareable_impl<shared_string> : std::true_type {};
 
 }  // namespace rethink
