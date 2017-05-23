@@ -21,27 +21,7 @@ int string_size(shared_string const& s);
 
 class shared_string {
  public:
-  shared_string() = default;
-
-  shared_string(shared_string const& rhs) : _data(rhs._data) {
-    detail::retain_ctrl_block(_data);
-  }
-
-  shared_string& operator=(shared_string const& rhs) {
-    if (this != &rhs) {
-      shared_string tmp(rhs);
-      swap(tmp);
-    }
-    return *this;
-  }
-
-  shared_string(shared_string&& rhs) noexcept : _data(rhs.detach()) {}
-
-  shared_string& operator=(shared_string&& rhs) noexcept {
-    shared_string tmp(std::move(rhs));
-    swap(tmp);
-    return *this;
-  }
+  shared_string() : _data(nullptr) {}
 
   void swap(shared_string& rhs) noexcept { std::swap(_data, rhs._data); }
 
@@ -49,27 +29,21 @@ class shared_string {
 
  public:
   template <class T>
-  shared_string(T r) : _data(detail::new_ctrl_block(r)){};
-
-  template <class T>
-  shared_string& operator=(T r) {
-    shared_string tmp(r);
-    swap(tmp);
-    return *this;
-  }
-
-  template <class T, std::enable_if_t<!std::is_same_v<T, shared_string>>>
   shared_string(T&& rhs) {
     if
       constexpr(is_transferable_v<decltype(rhs)>) {
         _data = std::forward<T>(rhs).transfer();
+      }
+    else if
+      constexpr(is_shareable_v<decltype(rhs)>) {
+        _data = std::forward<T>(rhs).share();
       }
     else {
       _data = detail::new_ctrl_block(rhs);
     }
   }
 
-  template <class T, std::enable_if_t<!std::is_same_v<T, shared_string>>>
+  template <class T>
   shared_string& operator=(T&& rhs) {
     shared_string tmp(std::forward<T>(rhs));
     swap(tmp);
@@ -85,26 +59,28 @@ class shared_string {
       return nullptr;
     }
     if (detail::ctrl_block_from_data(_data)->ref_count() == 1) {
-      return const_cast<char*>(detach());
+      char* tmp = const_cast<char*>(_data);
+      _data = nullptr;
+      return tmp;
     }
     return detail::new_ctrl_block(*this);
   }
 
- private:
-  char const* detach() noexcept {
-    char const* tmp = _data;
-    _data = nullptr;
-    return tmp;
+  const char* share() const {
+    detail::retain_ctrl_block(_data);
+    return _data;
   }
 
  private:
-  char const* _data{nullptr};
+  char const* _data;
 };
 
 //------------------------------------------------------------------------------
 
 inline void swap(shared_string& lhs, shared_string& rhs) { lhs.swap(rhs); }
+
 inline char const* string_data(shared_string const& s) { return s.data(); }
+
 inline int string_size(shared_string const& s) { return s.size(); }
 
 template <>
