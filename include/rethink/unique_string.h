@@ -5,7 +5,6 @@
 #include <rethink/api.h>
 #include <rethink/detail/ctrl_block.h>
 
-#include <iostream>
 #include <utility>
 
 namespace rethink {
@@ -24,32 +23,9 @@ class unique_string {
  public:
   unique_string() : _data(nullptr) {}
 
-  unique_string(unique_string const& rhs)
-      : _data(detail::new_ctrl_block(rhs)) {}
-
-  unique_string& operator=(unique_string const& rhs) {
-    if (&rhs != this) {
-      unique_string tmp(rhs);
-      swap(tmp);
-    }
-    return *this;
-  }
-
-  unique_string(unique_string&& rhs) noexcept : _data(rhs.detach()) {}
-
-  unique_string& operator=(unique_string&& rhs) noexcept {
-    if (&rhs != this) {
-      _data = std::move(rhs).detach();
-    }
-    return *this;
-  }
-
   void swap(unique_string& rhs) noexcept { std::swap(_data, rhs._data); }
 
   ~unique_string() { detail::release_ctrl_block(_data); }
-
-  template <class T>
-  struct view;
 
  public:
   template <class T>
@@ -76,10 +52,7 @@ class unique_string {
 
   int size() const noexcept { return detail::size_ctrl_block(_data); }
 
-  char* transfer() && { return detach(); }
-
- private:
-  char* detach() noexcept {
+  char* transfer() && noexcept {
     char* tmp = _data;
     _data = nullptr;
     return tmp;
