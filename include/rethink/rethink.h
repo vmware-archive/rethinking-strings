@@ -15,9 +15,10 @@ static_assert(sizeof(void*) == 8);
 
 //------------------------------------------------------------------------------
 
-template <int N>
-constexpr const char* string_data(char const (&a)[N]) {
-  return &a[0];
+template <class T, class = std::enable_if_t<std::is_pointer_v<T>>>
+int string_size(T t) {
+  // TODO runtime assert if > INT_MAX.
+  return std::strlen(t);
 }
 
 template <int N>
@@ -32,10 +33,9 @@ constexpr const char* string_data(T t) {
   return t;
 }
 
-template <class T, class = std::enable_if_t<std::is_pointer_v<T>>>
-int string_size(T t) {
-  // TODO runtime assert if > INT_MAX.
-  return std::strlen(t);
+template <int N>
+constexpr const char* string_data(char const (&a)[N]) {
+  return &a[0];
 }
 
 //------------------------------------------------------------------------------

@@ -6,7 +6,6 @@
 #include <rethink/detail/ctrl_block.h>
 #include <rethink/ref_string.h>
 
-#include <iostream>
 #include <utility>
 
 namespace rethink {
