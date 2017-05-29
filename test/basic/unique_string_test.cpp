@@ -103,5 +103,3 @@ TEST_CASE("Unique strings do not share storage", "[unique_string]") {
   }
   CHECK(ctrl_block::instance_count() == start);
 }
-#if 0
-#endif
