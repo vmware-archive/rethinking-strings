@@ -3,6 +3,7 @@
 #pragma once
 
 #include <rethink/api.h>
+#include <rethink/rethink.h>
 
 #include <atomic>
 #include <cstring>

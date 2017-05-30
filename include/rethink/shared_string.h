@@ -66,7 +66,7 @@ class shared_string {
     return detail::new_ctrl_block(*this);
   }
 
-  const char* share() const {
+  char const* share() const {
     detail::retain_ctrl_block(_data);
     return _data;
   }
