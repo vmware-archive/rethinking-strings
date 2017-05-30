@@ -15,6 +15,7 @@ template <class T, class Enable = void>
 class nullable;
 
 //------------------------------------------------------------------------------
+// nullable<T> Default partial specialization that holds a T and a bool.
 
 template <class T>
 class nullable<T, std::enable_if_t<!is_nullable_v<T>>> {
@@ -110,11 +111,12 @@ class nullable<T, std::enable_if_t<!is_nullable_v<T>>> {
   void destroy() { as_val().~T(); }
 
  private:
-  T _val;
+  std::aligned_storage_t<sizeof(T), alignof(T)> _val;
   bool _is_set;
 };
 
 //------------------------------------------------------------------------------
+// nullable<T> Bit-stealing partial specialization that has sizeof(T).
 
 template <class T>
 class nullable<T, std::enable_if_t<is_nullable_v<T>>> {
