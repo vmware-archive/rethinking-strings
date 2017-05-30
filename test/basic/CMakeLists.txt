@@ -3,6 +3,7 @@
 add_executable(basic
                basic.cpp
                ctrl_block_test.cpp
+               nullable_test.cpp
                ref_string_test.cpp
                shared_string_test.cpp
                transfer_owner_test.cpp

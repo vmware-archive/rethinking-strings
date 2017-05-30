@@ -89,4 +89,24 @@ struct is_transferable_impl<shared_string> : std::true_type {};
 template <>
 struct is_shareable_impl<shared_string> : std::true_type {};
 
+//------------------------------------------------------------------------------
+
+template <>
+struct null_traits<shared_string> {
+  static constexpr bool is_nullable = true;
+
+  struct storage {
+    alignas(shared_string) uintptr_t val;
+  };
+
+  static_assert(sizeof(storage) == sizeof(shared_string));
+  static_assert(alignof(storage) == alignof(shared_string));
+
+  static constexpr bool is_null(storage const& s) noexcept {
+    return s.val == 1;
+  }
+
+  static void write_null(storage& s) noexcept { s.val = 1; }
+};
+
 }  // namespace rethink

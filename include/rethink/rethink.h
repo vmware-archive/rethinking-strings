@@ -61,4 +61,19 @@ struct is_shareable : is_shareable_impl<std::decay_t<T>> {};
 template <class T>
 inline constexpr bool is_shareable_v = is_shareable<T>::value;
 
+//------------------------------------------------------------------------------
+
+template <class T>
+struct null_traits {
+  static constexpr bool is_nullable = false;
+  // typename storage - a POD type.
+  // static constexpr bool is_null(storage const&) noexcept;
+  // static void write_null(storage&) noexcept;
+};
+
+//------------------------------------------------------------------------------
+
+template <class T>
+constexpr inline bool is_nullable_v = null_traits<T>::is_nullable;
+
 }  // namespace rethink
