@@ -91,26 +91,27 @@ class nullable<T, std::enable_if_t<!is_nullable_v<T>>> {
 
   bool is_set() const { return _is_set; }
 
-  T& get() & { return _val; }
+  T& get() & { return as_val(); }
 
-  T const& get() const & { return _val; }
+  T const& get() const & { return as_val(); }
 
-  T&& get() && { return std::move(_val); }
+  T&& get() && { return std::move(as_val()); }
 
  private:
+  T const& as_val() const { return reinterpret_cast<T const&>(_val); }
+
+  T& as_val() { return reinterpret_cast<T&>(_val); }
+
   template <class U>
   void construct(U&& u) {
     new (&_val) T(std::forward<U>(u));
     _is_set = true;
   }
 
-  void destroy() { _val.~T(); }
+  void destroy() { as_val().~T(); }
 
  private:
-  union {
-    char _unused;
-    T _val;
-  };
+  std::aligned_storage_t<sizeof(T), alignof(T)> _val;
   bool _is_set;
 };
 
@@ -126,7 +127,7 @@ class nullable<T, std::enable_if_t<is_nullable_v<T>>> {
       std::is_same_v<nullable, std::decay_t<R>>;
 
  public:
-  nullable() { traits::write_null(_storage); }
+  nullable() { traits::write_null(_val); }
 
   ~nullable() {
     if (is_set()) {
@@ -141,7 +142,7 @@ class nullable<T, std::enable_if_t<is_nullable_v<T>>> {
         if (rhs.is_set()) {
           construct(std::forward<R>(rhs).get());
         } else {
-          traits::write_null(_storage);
+          traits::write_null(_val);
         }
       }
     else {
@@ -187,31 +188,32 @@ class nullable<T, std::enable_if_t<is_nullable_v<T>>> {
   void unset() {
     if (is_set()) {
       destroy();
-      traits::write_null(_storage);
+      traits::write_null(_val);
     }
   }
 
-  bool is_set() const { return !traits::is_null(_storage); }
+  bool is_set() const { return !traits::is_null(_val); }
 
-  T& get() & { return _val; }
+  T& get() & { return as_val(); }
 
-  T const& get() const & { return _val; }
+  T const& get() const & { return as_val(); }
 
-  T&& get() && { return std::move(_val); }
+  T&& get() && { return std::move(as_val()); }
 
  private:
+  T const& as_val() const { return reinterpret_cast<T const&>(_val); }
+
+  T& as_val() { return reinterpret_cast<T&>(_val); }
+
   template <class U>
   void construct(U&& u) {
     new (&_val) T(std::forward<U>(u));
   }
 
-  void destroy() { _val.~T(); }
+  void destroy() { as_val().~T(); }
 
  private:
-  union {
-    typename traits::storage _storage;
-    T _val;
-  };
+  typename traits::storage _val;
 };
 
 }  // namespace rethink
