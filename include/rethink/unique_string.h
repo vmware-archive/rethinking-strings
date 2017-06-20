@@ -30,11 +30,9 @@ class unique_string {
  public:
   template <class T>
   unique_string(T&& rhs) {
-    if
-      constexpr(is_transferable_v<decltype(rhs)>) {
-        _data = std::forward<T>(rhs).transfer();
-      }
-    else {
+    if constexpr (is_transferable_v<decltype(rhs)>) {
+      _data = std::forward<T>(rhs).transfer();
+    } else {
       _data = detail::new_ctrl_block(rhs);
     }
   }

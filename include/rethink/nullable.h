@@ -34,15 +34,13 @@ class nullable<T, std::enable_if_t<!is_nullable_v<T>>> {
 
   template <class R>
   nullable(R&& rhs) {
-    if
-      constexpr(is_this_type_v<R>) {
-        if (rhs.is_set()) {
-          construct(std::forward<R>(rhs).get());
-        } else {
-          _is_set = false;
-        }
+    if constexpr (is_this_type_v<R>) {
+      if (rhs.is_set()) {
+        construct(std::forward<R>(rhs).get());
+      } else {
+        _is_set = false;
       }
-    else {
+    } else {
       construct(std::forward<R>(rhs));
     }
   }
@@ -55,12 +53,11 @@ class nullable<T, std::enable_if_t<!is_nullable_v<T>>> {
 
   template <class R>
   void set(R&& rhs) {
-    if
-      constexpr(is_this_type_v<R>) {
-        if (this == &rhs) {
-          return;
-        }
+    if constexpr (is_this_type_v<R>) {
+      if (this == &rhs) {
+        return;
       }
+    }
     nullable tmp(std::forward<R>(rhs));
     swap(*this, tmp);
   }
@@ -137,15 +134,13 @@ class nullable<T, std::enable_if_t<is_nullable_v<T>>> {
 
   template <class R>
   nullable(R&& rhs) {
-    if
-      constexpr(is_this_type_v<R>) {
-        if (rhs.is_set()) {
-          construct(std::forward<R>(rhs).get());
-        } else {
-          traits::write_null(_val);
-        }
+    if constexpr (is_this_type_v<R>) {
+      if (rhs.is_set()) {
+        construct(std::forward<R>(rhs).get());
+      } else {
+        traits::write_null(_val);
       }
-    else {
+    } else {
       construct(std::forward<R>(rhs));
     }
   }
@@ -158,12 +153,11 @@ class nullable<T, std::enable_if_t<is_nullable_v<T>>> {
 
   template <class R>
   void set(R&& rhs) {
-    if
-      constexpr(is_this_type_v<R>) {
-        if (this == &rhs) {
-          return;
-        }
+    if constexpr (is_this_type_v<R>) {
+      if (this == &rhs) {
+        return;
       }
+    }
     nullable tmp(std::forward<R>(rhs));
     swap(*this, tmp);
   }

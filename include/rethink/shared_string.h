@@ -30,15 +30,11 @@ class shared_string {
  public:
   template <class T>
   shared_string(T&& rhs) {
-    if
-      constexpr(is_transferable_v<decltype(rhs)>) {
-        _data = std::forward<T>(rhs).transfer();
-      }
-    else if
-      constexpr(is_shareable_v<decltype(rhs)>) {
-        _data = std::forward<T>(rhs).share();
-      }
-    else {
+    if constexpr (is_transferable_v<decltype(rhs)>) {
+      _data = std::forward<T>(rhs).transfer();
+    } else if constexpr (is_shareable_v<decltype(rhs)>) {
+      _data = std::forward<T>(rhs).share();
+    } else {
       _data = detail::new_ctrl_block(rhs);
     }
   }
